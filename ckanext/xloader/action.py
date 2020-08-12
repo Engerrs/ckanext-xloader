@@ -12,6 +12,9 @@ import ckan.lib.navl.dictization_functions
 import ckan.logic as logic
 import ckan.plugins as p
 from ckan.logic import side_effect_free
+import ckan.logic.schema as schema_
+import ckan.lib.dictization.model_save as model_save
+import ckan.lib.dictization.model_dictize as model_dictize
 
 import ckanext.xloader.schema
 from . import interfaces as xloader_interfaces
