@@ -37,7 +37,7 @@ except AttributeError:
     from pylons import config
 _get_or_bust = logic.get_or_bust
 _validate = ckan.lib.navl.dictization_functions.validate
-
+_check_access = logic.check_access
 
 def xloader_submit(context, data_dict):
     ''' Submit a job to be Express Loaded. The Express Loader / 'xloader' is a
