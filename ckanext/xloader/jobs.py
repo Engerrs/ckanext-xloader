@@ -483,6 +483,7 @@ def update_resource(resource, patch_only=False):
     action = 'resource_update' if not patch_only else 'resource_patch'
     from ckan import model
     context = {'model': model, 'session': model.Session, 'ignore_auth': True}
+    context['user'] = ''  # benign - needed for ckan 2.5 and higher
     get_action(action)(context, resource)
 
 
