@@ -73,8 +73,16 @@ def load_csv(csv_filepath, resource_id, mimetype='text/csv', logger=None):
     headers = encode_headers(headers)
 
     # Guess the delimiter used in the file
-    with open(csv_filepath, 'rb') as f:
-        header_line = f.readline()
+    if extension == '.zip':
+        from zipfile import ZipFile
+        with ZipFile(csv_filepath) as z:
+            files = z.namelist()
+            if files:
+                with z.open(files[0]) as f:
+                    header_line = f.readline()
+    else:
+        with open(csv_filepath, 'rb') as f:
+            header_line = f.readline()
     try:
         sniffer = csv.Sniffer()
         delimiter = sniffer.sniff(six.ensure_text(header_line)).delimiter
@@ -100,15 +108,28 @@ def load_csv(csv_filepath, resource_id, mimetype='text/csv', logger=None):
     # It is easier to reencode it as UTF8 than convert the name of the encoding
     # to one that pgloader will understand.
     logger.info('Ensuring character coding is UTF8')
-    f_write = tempfile.NamedTemporaryFile(suffix=extension, delete=False)
-    try:
-        with open(csv_filepath, 'rb') as f_read:
-            csv_decoder = messytables.commas.UTF8Recoder(f_read, encoding=None)
-            for line in csv_decoder:
-                f_write.write(line)
-            f_write.close()   # ensures the last line is written
-            csv_filepath = f_write.name
 
+    def _tempFile(f_write ,f_read):
+        for line in f_read:
+            f_write.write(line)
+        f_write.close()   # ensures the last line is written
+        csv_filepath = f_write.name
+        return csv_filepath
+
+    f_write = tempfile.NamedTemporaryFile(suffix=extension, delete=False)
+
+    try:
+        if extension == '.zip':
+            from zipfile import ZipFile
+            with ZipFile(csv_filepath) as z:
+                files = z.namelist()
+                if files:
+                    with z.open(files[0]) as f_read:
+                        csv_filepath = _tempFile(f_write, f_read)
+        else:
+            with open(csv_filepath, 'rb') as f_read:
+                csv_decoder = messytables.commas.UTF8Recoder(f_read, encoding=None)
+                csv_filepath = _tempFile(f_write, csv_decoder)
         # check tables exists
 
         # datastore db connection
