@@ -124,8 +124,10 @@ def load_csv(csv_filepath, resource_id, mimetype='text/csv', logger=None):
             with ZipFile(csv_filepath) as z:
                 files = z.namelist()
                 if files:
-                    with z.open(files[0]) as f_read:
-                        csv_filepath = _tempFile(f_write, f_read)
+                    tmp_file = z.extract(files[0], path='/tmp/')
+                    with open(tmp_file, 'rb') as tmp_read:
+                        csv_decoder = messytables.commas.UTF8Recoder(tmp_read, encoding=None)
+                        csv_filepath = _tempFile(f_write, csv_decoder)
         else:
             with open(csv_filepath, 'rb') as f_read:
                 csv_decoder = messytables.commas.UTF8Recoder(f_read, encoding=None)
